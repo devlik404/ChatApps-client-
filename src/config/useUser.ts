@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
-import { ApiData } from "../hooks/Api";
+import { ApiData, setAuthToken } from "../hooks/Api";
 import { IAuth } from "../interface/IData";
 
 export function UseUsers() {
     const [auth,setAuth] =  useState<IAuth[]>([]);
+    const [user, setUser] = useState<IAuth>({
+        id: "",
+        name: "",
+        email: "",
+        phone: "",
+      });
+    
     const fetchData = async () => {
         try {
             const response = await ApiData.get("/user",{
@@ -16,9 +23,21 @@ export function UseUsers() {
             
         }
     }
+
+    const fetchUser = async () => {
+        try {
+          setAuthToken(localStorage.token);
+          const response = await ApiData.get("/check");
+          setUser(response.data.user);
+        } catch (error) {
+          console.info(error);
+        }
+      };
+    
     useEffect(()=>{
-        fetchData()
+        fetchData();
+        fetchUser();
     },[])
  
-  return{auth}
+  return{auth,user,fetchUser}
 }

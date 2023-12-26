@@ -1,106 +1,83 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Box, ListItem, Text, UnorderedList } from "@chakra-ui/react";
 import ChatInput from "./../components/chat";
 import { Socket, io } from "socket.io-client";
 import { useEffect, useState } from "react";
-import { ServerToClientEvents, ClientToServerEvents } from "../../../typings";
-import { setAuthToken, ApiData } from "../hooks/Api";
-import { IAuth, IMessage } from "../interface/IData";
+import { UseUsers } from "../config/useUser";
+import { IMessage } from "../interface/IData";
 import { format } from "date-fns";
 
 const ChatApp = ({ receiverId }: any) => {
   console.log("receiverId:", receiverId);
-
-  const [user, setUser] = useState<IAuth>({
-    id: "",
-    name: "",
-    email: "",
-    phone: "",
-  });
-  console.log(" user:", user.id);
+// fetch user login
+  const { user } = UseUsers();
 
   const [messages, setMessages] = useState<IMessage[]>([]);
-  console.log("Sending message:", messages);
+  console.log("messages:", messages);
 
-  const fetchData = async () => {
-    try {
-      setAuthToken(localStorage.token);
-      const response = await ApiData.get("/check");
-      setUser(response.data.user);
-    } catch (error) {
-      console.info(error);
-    }
-  };
-
-  const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
-    "http://localhost:3000",
-    {
-      auth: {
-        token: `Bearer ${localStorage.token}`,
-      },
-      query: {
-        id: user.id,
-      },
-    }
-  );
-
-  const handleSendMessage = (content: string) => {
-    console.log(content);
-
-    if (content) {
-      socket.emit("clientMsg", { senderId: user.id, receiverId, content });
-    }
-  };
+  const socket: Socket = io("http://localhost:3000", {
+    auth: {
+      token: `Bearer ${localStorage.token}`,
+    },
+    query: {
+      id: user.id,
+    },
+  });
 
   useEffect(() => {
-    fetchData();
-    socket.on("connect", () => {
-      console.log("Koneksi ke server berhasil!");
+    // Event listener user connection
+    socket.on("user_connected", ({ clientId }) => {
+      console.log(`User connected:(ID: ${clientId})`);
     });
-
+    // Event listener load message
     socket.on("serverMsg", (data) => {
-      console.log(data.senderId);
-
-      if (data.receiverId === receiverId) {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            senderId: data.senderId,
-            receiverId: data.receiverId,
-            content: data.content,
-            timestamp: data.timestamp,
-          },
-        ]);
-      }
+      setMessages((prevMessages) => [...prevMessages, data]);
     });
 
     return () => {
-      // clean event listener
       socket.off("serverMsg");
+
+      socket.off("user_connected");
     };
-  }, [receiverId, user.id]);
+  }, [socket, user.id, receiverId.id]);
 
-  const getMessageTimestamp = (timestamp: string) => {
+  const handleSendMessage = (content: string) => {
+    console.log("handleSendMessage content:", content);
+    socket.emit("clientMsg", {
+      senderId: user.id,
+      receiverId:receiverId.id,
+      content,
+    });
+  };
+
+
+  // Mengonversi ke format jam dan  menit
+  const timeConvertMessage = (timestamp?: string) => {
+    if (!timestamp) {
+      const defaultTime = new Date();
+      return format(defaultTime, "HH:mm");
+    }
+
     const messageDate = new Date(timestamp);
-
+    
     return format(messageDate, "HH:mm");
   };
 
   return (
-    <Box p={4} w={"100%"}>
+    <>
+    <Box paddingTop={"50px"}>
       <UnorderedList listStyleType="none" p="0">
         {messages.map((message, index) => (
           <ListItem
             key={index}
             textAlign={message.senderId === user.id ? "right" : "left"}
             alignSelf={
-              message.receiverId === receiverId ? "flex-end" : "flex-start"
+              message.receiverId === receiverId.id ? "flex-end" : "flex-start"
             }
             m="2"
           >
             <Box
               bgColor={message.senderId === user.id ? "teal.400" : "gray.200"}
-              color={message.receiverId === receiverId ? "white" : "black"}
+              color={message.receiverId === receiverId.id ? "white" : "black"}
               p="3"
               borderRadius="md"
             >
@@ -109,15 +86,15 @@ const ChatApp = ({ receiverId }: any) => {
               </Text>
 
               <Text fontSize="sm" color="gray.500">
-                {getMessageTimestamp(message.timestamp)}
+                {timeConvertMessage(message.timestamp)}
               </Text>
             </Box>
           </ListItem>
         ))}
       </UnorderedList>
-
       <ChatInput onSendMessage={handleSendMessage} />
     </Box>
+    </>
   );
 };
 

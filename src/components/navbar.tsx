@@ -2,7 +2,6 @@ import {
   Avatar,
   AvatarBadge,
   Box,
-  Button,
   IconButton,
   Tag,
   TagLabel,
@@ -14,7 +13,6 @@ import { ArrowLeftIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";
 
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Layout = ({onUserClick}:any) => {
   const navigate = useNavigate();
 
@@ -27,8 +25,8 @@ const Layout = ({onUserClick}:any) => {
     }
   };
 
-  const { auth } = UseUsers();
-
+  const { auth,user } = UseUsers();
+  
   return (
     <>
       <Box h="100vh" display="flex" flexDirection="column" gap="5" bg={"teal"}>
@@ -37,8 +35,8 @@ const Layout = ({onUserClick}:any) => {
         </Text>
         {auth.map((data) => (
          
-          <WrapItem key={data.id} >
-             <Button onClick={() => onUserClick(data.id)}>
+          <WrapItem key={data.id} onClick={() => onUserClick(data)} cursor={"pointer"}>
+        
             <Avatar>
               <AvatarBadge boxSize="1.25em" bg="green.500" />
             </Avatar>
@@ -48,7 +46,7 @@ const Layout = ({onUserClick}:any) => {
                 <Text fontSize="sm">{data.phone}</Text>
               </Box>
             }
-            </Button>
+          
           </WrapItem>
         ))}
 
@@ -66,7 +64,7 @@ const Layout = ({onUserClick}:any) => {
             ml={-1}
             mr={2}
           />
-          <TagLabel>Segun</TagLabel>
+          <TagLabel>{user.name}</TagLabel>
           <IconButton
             onClick={HandleLogout}
             isRound={true}

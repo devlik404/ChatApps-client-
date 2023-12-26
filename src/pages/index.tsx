@@ -2,12 +2,13 @@ import { Box, Flex } from "@chakra-ui/react";
 import Navbar from "../components/navbar";
 import ChatApp from "./chat";
 import { useState } from "react";
+import { NavTop } from "../components/navTop";
 
 const Home = () => {
   const [receiverId, setReceiverId] = useState("");
 
-  const handleUserClick = (userId: string) => {
-    setReceiverId(userId);
+  const handleUserClick = (props: any) => {
+    setReceiverId(props);
   };
   return (
     <>
@@ -17,9 +18,10 @@ const Home = () => {
             <Navbar onUserClick={handleUserClick} />
           </Box>
 
-          <Box flex="1">
-            <Flex direction="column" height="100%" width="80%" p={4}>
-              <ChatApp receiverId={receiverId} />
+          <Box flex="1"  overflow={"scroll"}>
+           <NavTop props={receiverId}/>
+            <Flex direction="column" height="100%" p={4} >
+              <ChatApp receiverId={receiverId}/>
             </Flex>
           </Box>
         </Flex>

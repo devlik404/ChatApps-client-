@@ -22,7 +22,7 @@ const ChatInput = ({ onSendMessage }: any) => {
   return (
     <>
       <Box position={"fixed"} bottom={"0"} w={"70%"} p={"15px"}>
-        <InputGroup>
+        <InputGroup >
           <Input
             placeholder="Type your message..."
             value={message}
@@ -36,6 +36,7 @@ const ChatInput = ({ onSendMessage }: any) => {
             bgColor="white"
             borderWidth="1px"
             p={6}
+           
           />
           <InputRightElement width="4.5rem" h={"100%"}>
             <IconButton
@@ -43,7 +44,6 @@ const ChatInput = ({ onSendMessage }: any) => {
               aria-label="Send message"
               icon={<BsSend />}
               onClick={sendMessage}
-             
             />
           </InputRightElement>
         </InputGroup>
